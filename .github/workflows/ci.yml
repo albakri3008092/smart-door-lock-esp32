@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  compile:
+    name: Compile smart_door_lock (esp32 2.0.17)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install arduino-cli
+        run: |
+          mkdir -p "$HOME/bin"
+          curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | BINDIR="$HOME/bin" sh
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+      - name: Install ESP32 core 2.0.17
+        run: |
+          arduino-cli config init
+          arduino-cli core update-index --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+          arduino-cli core install esp32:esp32@2.0.17 --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+      - name: Install libraries
+        run: |
+          arduino-cli lib install "ArduinoJson"
+          arduino-cli lib install "Keypad"
+          arduino-cli lib install "LiquidCrystal I2C"
+          arduino-cli lib install "UniversalTelegramBot"
+      - name: Compile sketch
+        run: arduino-cli compile --fqbn esp32:esp32:esp32 .
